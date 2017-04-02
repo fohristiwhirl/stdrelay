@@ -4,10 +4,11 @@ import sys, queue, threading, tkinter
 class Root(tkinter.Tk):
 
 	def __init__(self, *args, **kwargs):
-
 		tkinter.Tk.__init__(self, *args, **kwargs)
 
 		self.protocol("WM_DELETE_WINDOW", self.quit)
+		self.resizable(width = False, height = False)
+		self.wm_title("Stdin / Stdout Relay")
 
 		self.msg_queue = queue.Queue()
 		self.big_display_string = tkinter.StringVar()
