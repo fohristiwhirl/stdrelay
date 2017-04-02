@@ -1,6 +1,8 @@
 import sys, queue, threading, tkinter
 
+
 msg_queue = queue.Queue()
+
 
 class Root(tkinter.Tk):
 
@@ -10,32 +12,38 @@ class Root(tkinter.Tk):
 
 		self.protocol("WM_DELETE_WINDOW", self.quit)
 
-		self.in_messages = tkinter.Label(self, text = "...messages here...", justify = tkinter.LEFT, width = 80)
-		self.in_messages.pack()
+		self.big_display_string = tkinter.StringVar()
+		self.input_string = tkinter.StringVar()
 
-		self.outvar = tkinter.StringVar()
+		self.in_messages = tkinter.Label(self, textvariable = self.big_display_string, justify = tkinter.LEFT, anchor = tkinter.NW, width = 80, height = 20)
+		self.in_messages.grid(row = 0, column = 0)
 
-		self.out = tkinter.Entry(self, textvariable = self.outvar, width = 80)
+		self.out = tkinter.Entry(self, textvariable = self.input_string, width = 80)
 		self.out.bind('<Return>', self.deal_with_user_input)
-		self.out.pack()
+		self.out.grid(row = 1, column = 0)
 
 		threading.Thread(target = stdin_reader, daemon = True).start()
 
 		self.after(20, self.deal_with_stdin)
 
 	def deal_with_user_input(self, event):
-		print(self.outvar.get())
-		self.outvar.set("")
+		print(self.input_string.get())
+		sys.stdout.flush()
+		self.input_string.set("")
 
 	def deal_with_stdin(self):
 		try:
-			foo = msg_queue.get(block = False).strip()
-			self.in_messages.config(text = foo)
+			msg = msg_queue.get(block = False).strip()
+			lines = self.big_display_string.get().split("\n")
+			lines.append(msg)
+			if len(lines) > 20:
+				lines = lines[len(lines) - 20:]
+			text_to_show = "\n".join(lines)
+			self.big_display_string.set(text_to_show)
 		except:
 			pass
 
 		self.after(20, self.deal_with_stdin)
-
 
 
 def stdin_reader():
