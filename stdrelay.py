@@ -1,9 +1,6 @@
 import sys, queue, threading, tkinter
 
 
-msg_queue = queue.Queue()
-
-
 class Root(tkinter.Tk):
 
 	def __init__(self, *args, **kwargs):
@@ -12,6 +9,7 @@ class Root(tkinter.Tk):
 
 		self.protocol("WM_DELETE_WINDOW", self.quit)
 
+		self.msg_queue = queue.Queue()
 		self.big_display_string = tkinter.StringVar()
 		self.input_string = tkinter.StringVar()
 
@@ -22,7 +20,7 @@ class Root(tkinter.Tk):
 		self.out.bind('<Return>', self.deal_with_user_input)
 		self.out.grid(row = 1, column = 0)
 
-		threading.Thread(target = stdin_reader, daemon = True).start()
+		threading.Thread(target = stdin_reader, args = (self.msg_queue,), daemon = True).start()
 
 		self.after(20, self.deal_with_stdin)
 
@@ -33,7 +31,7 @@ class Root(tkinter.Tk):
 
 	def deal_with_stdin(self):
 		try:
-			msg = msg_queue.get(block = False).strip()
+			msg = self.msg_queue.get(block = False).strip()
 			lines = self.big_display_string.get().split("\n")
 			lines.append(msg)
 			if len(lines) > 20:
@@ -46,9 +44,9 @@ class Root(tkinter.Tk):
 		self.after(20, self.deal_with_stdin)
 
 
-def stdin_reader():
+def stdin_reader(q):
 	for line in sys.stdin:
-		msg_queue.put(line)
+		q.put(line)
 
 
 if __name__ == "__main__":
