@@ -38,7 +38,7 @@ class Root(tkinter.Tk):
 				lines = lines[len(lines) - 20:]
 			text_to_show = "\n".join(lines)
 			self.big_display_string.set(text_to_show)
-		except:
+		except queue.Empty:
 			pass
 
 		self.after(20, self.deal_with_stdin)
